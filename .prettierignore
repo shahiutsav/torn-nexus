@@ -1,0 +1,13 @@
+# Rust / Tauri
+src-tauri/
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+.svelte-kit/
+
+# Misc
+.env*

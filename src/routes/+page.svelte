@@ -1,6 +1,7 @@
 <script lang="ts">
-  import ArrowUpIcon from "@lucide/svelte/icons/arrow-up";
+  import SearchIcon from "@lucide/svelte/icons/search";
   import { invoke } from "@tauri-apps/api/core";
+  import * as InputGroup from "@/components/ui/input-group/index.js";
   import { Button } from "$lib/components/ui/button/index.js";
 
   let name = $state("");
@@ -18,7 +19,15 @@
 
   <div class="row">
     <form class="row" onsubmit={greet}>
-      <input id="greet-input" placeholder="Enter a name..." bind:value={name} />
+      <InputGroup.Root
+        ><InputGroup.Input placeholder="Search..." />
+        <InputGroup.Addon>
+          <SearchIcon />
+        </InputGroup.Addon>
+        <InputGroup.Addon align="inline-end">
+          <InputGroup.Button>Search</InputGroup.Button>
+        </InputGroup.Addon>
+      </InputGroup.Root>
       <Button type="submit">Greet</Button>
     </form>
     <p>{greetMsg}</p>
