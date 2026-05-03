@@ -19,8 +19,8 @@
 
   <div class="row">
     <form class="row" onsubmit={greet}>
-      <InputGroup.Root
-        ><InputGroup.Input placeholder="Search..." />
+      <InputGroup.Root>
+        <InputGroup.Input placeholder="Search..." class="p-4 pt-2" />
         <InputGroup.Addon>
           <SearchIcon />
         </InputGroup.Addon>
