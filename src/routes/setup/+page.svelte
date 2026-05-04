@@ -1,10 +1,8 @@
 <script lang="ts">
   import * as Card from "@/components/ui/card/index.js";
-  import type { PageData } from "./$types.js";
   import SettingsForm from "./settings-form.svelte";
   import { Button } from "@/components/ui/button/index.js";
   import ModeToggle from "@/components/ui/mode-toggle.svelte";
-  let { data }: { data: PageData } = $props();
 </script>
 
 <main class="relative h-svh w-full">
@@ -25,13 +23,14 @@
       </Card.Action>
     </Card.Header>
     <Card.Content>
-      <SettingsForm {data} />
+      <SettingsForm />
     </Card.Content>
     <Card.Footer>
       <Button
         class="w-full"
         variant="outline"
         href="https://www.torn.com/3255609"
+        target="_blank"
       >
         New to Torn? Start Playing!
       </Button>

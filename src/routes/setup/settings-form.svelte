@@ -1,20 +1,45 @@
+<script lang="ts" module>
+  import { string, z } from "zod";
+
+  const formSchema = z.object({
+    apiKey: z
+      .string()
+      .min(16, "The API Key must be exactly 16 characters")
+      .max(16, "The API Key must be exactly 16 characters"),
+  });
+</script>
+
 <script lang="ts">
+  import { defaults, setError, superForm } from "sveltekit-superforms";
+  import { zod4 } from "sveltekit-superforms/adapters";
   import * as Form from "$lib/components/ui/form/index.js";
-  import { Input } from "$lib/components/ui/input/index.js";
+  import * as InputGroup from "$lib/components/ui/input-group/index.js";
+  import EyeIcon from "@lucide/svelte/icons/eye";
+  import EyeCloseIcon from "@lucide/svelte/icons/eye-closed";
   import { Button } from "@/components/ui/button/index.js";
-  import { formSchema, type FormSchema } from "./schema";
-  import {
-    type SuperValidated,
-    type Infer,
-    superForm,
-  } from "sveltekit-superforms";
-  import { zod4Client } from "sveltekit-superforms/adapters";
+  import { invoke } from "@tauri-apps/api/core";
+  import { goto, replaceState } from "$app/navigation";
 
-  let { data }: { data: { form: SuperValidated<Infer<FormSchema>> } } =
-    $props();
+  let showPassword = $state(false);
 
-  const form = superForm(data.form, {
-    validators: zod4Client(formSchema),
+  const form = superForm(defaults(zod4(formSchema)), {
+    validators: zod4(formSchema),
+    SPA: true,
+    resetForm: false,
+    onUpdate: async ({ form }) => {
+      if (form.valid) {
+        try {
+          await invoke("fetch_data", {
+            apiKey: form.data.apiKey,
+          });
+          console.log("yes it was a success. Moving to home");
+          goto("/home", { replaceState: true });
+        } catch (e) {
+          console.error(e);
+          setError(form, "apiKey", e as string);
+        }
+      }
+    },
   });
 
   const { form: formData, enhance } = form;
@@ -35,22 +60,34 @@
             Generate me an API Key
           </Button>
         </div>
-        <Input
-          {...props}
-          placeholder="Enter your API Key here"
-          bind:value={$formData.apiKey}
-          class="font-mono"
-        />
-        <Form.Description>
-          Your API key must have at least
-          <span class="text-[#b28500] dark:text-[#fcc419]">
-            Limited Access
-          </span>
-          permissions for TornNexus to work properly.
-        </Form.Description>
+
+        <InputGroup.Root>
+          <InputGroup.Input
+            {...props}
+            bind:value={$formData.apiKey}
+            placeholder="Enter your API Key here..."
+            class="font-mono"
+            type={showPassword ? "text" : "password"}
+          />
+          <InputGroup.Addon align="inline-end">
+            <InputGroup.Button onclick={() => (showPassword = !showPassword)}>
+              {#if showPassword}
+                <EyeCloseIcon />
+              {:else}
+                <EyeIcon />
+              {/if}
+            </InputGroup.Button>
+          </InputGroup.Addon>
+        </InputGroup.Root>
       {/snippet}
     </Form.Control>
-    <Form.FieldErrors class="mb-3" />
+    <Form.FieldErrors />
+    <Form.Description>
+      At least
+      <span class="text-[#b28500] dark:text-[#fcc419]"> Limited Access </span>
+      permissions needed.
+    </Form.Description>
   </Form.Field>
-  <Form.Button class="w-full">Submit</Form.Button>
+
+  <Form.Button class="mt-2 w-full">Submit</Form.Button>
 </form>
