@@ -18,7 +18,7 @@
   import EyeCloseIcon from "@lucide/svelte/icons/eye-closed";
   import { Button } from "@/components/ui/button/index.js";
   import { invoke } from "@tauri-apps/api/core";
-  import { goto, replaceState } from "$app/navigation";
+  import { goto } from "$app/navigation";
 
   let showPassword = $state(false);
 
@@ -29,11 +29,12 @@
     onUpdate: async ({ form }) => {
       if (form.valid) {
         try {
-          await invoke("fetch_data", {
+          await invoke("validate_and_save_key", {
             apiKey: form.data.apiKey,
+          }).then(() => {
+            console.log("api key verified, trying to navigate");
+            window.location.replace("/");
           });
-          console.log("yes it was a success. Moving to home");
-          goto("/home", { replaceState: true });
         } catch (e) {
           console.error(e);
           setError(form, "apiKey", e as string);
