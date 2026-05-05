@@ -4362,6 +4362,7 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-opener",
  "tauri-plugin-store",
+ "thiserror 2.0.18",
  "windows-native-keyring-store",
 ]
 

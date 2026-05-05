@@ -16,11 +16,13 @@
   import * as InputGroup from "$lib/components/ui/input-group/index.js";
   import EyeIcon from "@lucide/svelte/icons/eye";
   import EyeCloseIcon from "@lucide/svelte/icons/eye-closed";
+  import { Spinner } from "$lib/components/ui/spinner/index.js";
   import { Button } from "@/components/ui/button/index.js";
   import { invoke } from "@tauri-apps/api/core";
   import { goto } from "$app/navigation";
 
   let showPassword = $state(false);
+  let showLoad = $state(false);
 
   const form = superForm(defaults(zod4(formSchema)), {
     validators: zod4(formSchema),
@@ -28,13 +30,12 @@
     resetForm: false,
     onUpdate: async ({ form }) => {
       if (form.valid) {
+        showLoad = true;
         try {
           await invoke("validate_and_save_key", {
             apiKey: form.data.apiKey,
-          }).then(() => {
-            console.log("api key verified, trying to navigate");
-            window.location.replace("/");
           });
+          await goto("/", { replaceState: true });
         } catch (e) {
           console.error(e);
           setError(form, "apiKey", e as string);
@@ -90,5 +91,10 @@
     </Form.Description>
   </Form.Field>
 
-  <Form.Button class="mt-2 w-full">Submit</Form.Button>
+  <Form.Button class="mt-2 w-full" disabled={showLoad}>
+    {#if showLoad}
+      <Spinner />
+    {/if}
+    Submit</Form.Button
+  >
 </form>
