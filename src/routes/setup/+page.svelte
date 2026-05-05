@@ -5,7 +5,7 @@
   import ModeToggle from "@/components/ui/mode-toggle.svelte";
 </script>
 
-<main class="relative h-svh w-full">
+<main>
   <Card.Root class="absolute top-1/2 left-1/2 w-90 -translate-1/2">
     <Card.Header>
       <Card.Title class="flex items-center">
