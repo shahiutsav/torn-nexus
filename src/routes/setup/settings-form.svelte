@@ -35,7 +35,7 @@
           await invoke("validate_and_save_key", {
             apiKey: form.data.apiKey,
           });
-          await goto("/", { replaceState: true });
+          await goto("/dashboard", { replaceState: true });
         } catch (e) {
           console.error(e);
           setError(form, "apiKey", e as string);

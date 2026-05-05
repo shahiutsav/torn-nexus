@@ -2,7 +2,7 @@
   import * as Card from "@/components/ui/card/index.js";
   import SettingsForm from "./settings-form.svelte";
   import { Button } from "@/components/ui/button/index.js";
-  import ModeToggle from "@/components/ui/mode-toggle.svelte";
+  import ModeToggle from "@/components/mode-toggle.svelte";
 </script>
 
 <main>

@@ -13,7 +13,7 @@
 <ModeWatcher />
 
 <div
-  class="titlebar bg-background border-accent fixed top-0 right-0 left-0 z-99 grid h-7.5 grid-cols-[auto_max-content] border-b select-none"
+  class="titlebar border-accent bg-background fixed top-0 right-0 left-0 z-99 grid h-8.75 grid-cols-[auto_max-content] border-b select-none"
 >
   <p
     data-tauri-drag-region
@@ -28,7 +28,7 @@
       id="titlebar-minimize"
       variant={"ghost"}
       title="Minimize"
-      class="inline-flex h-7.5 w-7.5 rounded-none border-none"
+      class="inline-flex h-8.75 w-8.75 rounded-none border-none"
       onclick={() => {
         appWindow.minimize();
       }}
@@ -47,7 +47,7 @@
       id="titlebar-maximize"
       variant={"ghost"}
       title="Maximize"
-      class="inline-flex h-7.5 w-7.5 rounded-none border-none"
+      class="inline-flex h-8.75 w-8.75 rounded-none border-none"
       onclick={() => appWindow.toggleMaximize()}
     >
       <svg
@@ -64,7 +64,7 @@
       id="titlebar-close"
       variant={"ghost"}
       title="Close"
-      class="hover:bg-destructive dark:hover:bg-destructive inline-flex h-7.5 w-7.5 rounded-none border-none"
+      class="hover:bg-destructive dark:hover:bg-destructive inline-flex h-8.75 w-8.75 rounded-none border-none"
       onclick={() => appWindow.close()}
     >
       <svg
@@ -82,6 +82,6 @@
   </div>
 </div>
 
-<div class="relative mt-7.5 h-[calc(100svh-30px)]">
+<div class="relative top-8.75 h-[calc(100svh-35px)]">
   {@render children()}
 </div>
