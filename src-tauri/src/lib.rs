@@ -1,143 +1,89 @@
-use keyring_core::Entry;
-use reqwest::header::{ACCEPT, AUTHORIZATION};
-use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Manager};
+use std::{
+    sync::Mutex,
+    time::{SystemTime, UNIX_EPOCH},
+};
+use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_store::StoreExt;
+use tokio::time::{sleep_until, Duration, Instant};
+
+use crate::{keyring::get_key, torn_api::TornClient};
+
+mod keyring;
+mod torn_api;
 
 const STORE_NAME: &str = "store.json";
+const TORN_USER: &str = "torn_api_key";
 
-#[derive(Debug, Deserialize, Serialize)]
-pub struct KeyInfoRoot {
-    pub info: Info,
-}
+async fn poll_and_emit(app: AppHandle) {
+    let mut count = 0;
+    loop {
+        // Calculate ms until next 30s mark
+        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
 
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Info {
-    pub access: Access,
-    pub user: User,
-}
+        let secs = now.as_secs();
+        let next_mark = ((secs / 30) + 1) * 30;
 
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Access {
-    pub level: u8,
-    #[serde(rename = "type")]
-    pub type_: String,
-    pub faction: bool,
-    pub company: bool,
-}
+        let wait_secs = next_mark - secs;
+        let target = Instant::now() + Duration::from_secs(wait_secs);
 
-#[derive(Debug, Deserialize, Serialize)]
-pub struct User {
-    pub id: u32,
-    pub faction_id: u32,
-    pub company_id: u32,
-}
+        sleep_until(target).await;
 
-#[derive(Debug, Deserialize, Serialize)]
-pub struct APIError {
-    pub error: Error,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Error {
-    pub code: u8,
-    pub error: String,
-}
-
-#[derive(Deserialize)]
-#[serde(untagged)]
-pub enum APIResponse {
-    Success(KeyInfoRoot),
-    Error(APIError),
-}
-
-#[derive(Debug, thiserror::Error)]
-pub enum AppError {
-    #[error("Request failed: {0}")]
-    Request(#[from] reqwest::Error),
-
-    #[error("Keyring error: {0}")]
-    Keyring(#[from] keyring_core::Error),
-
-    #[error("Store error: {0}")]
-    Store(#[from] tauri_plugin_store::Error),
-
-    #[error("Insufficient API key access level (need ≥ 3, got {0})")]
-    InsufficientAccess(u8),
-
-    #[error("Torn API error: {0}")]
-    TornApi(String),
-}
-
-// Conversion at the FFI boundary only
-impl From<AppError> for String {
-    fn from(e: AppError) -> Self {
-        e.to_string()
-    }
-}
-
-fn torn_keyring(app: &AppHandle) -> Result<Entry, AppError> {
-    Entry::new(&app.config().identifier, "torn_api_key").map_err(AppError::Keyring)
-}
-
-async fn validate_key(app: &AppHandle, api_key: &str) -> Result<User, AppError> {
-    let json = app
-        .state::<reqwest::Client>()
-        .get("https://api.torn.com/v2/key/info")
-        .header(ACCEPT, "application/json")
-        .header(AUTHORIZATION, format!("ApiKey {}", api_key))
-        .send()
-        .await?
-        .json::<APIResponse>()
-        .await?;
-
-    match json {
-        APIResponse::Success(root) => {
-            // Make sure the api key given has the minimum access required: Limited Access (3)
-            if root.info.access.level < 3 {
-                Err(AppError::InsufficientAccess(root.info.access.level))
-            } else {
-                Ok(root.info.user)
-            }
-        }
-        // If there's an error return the error result
-        APIResponse::Error(err) => Err(AppError::TornApi(err.error.error)),
+        count += 1;
+        app.emit("data-updated", count).unwrap();
     }
 }
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
-async fn validate_and_save_key(app: AppHandle, api_key: &str) -> Result<String, String> {
-    let user = validate_key(&app, api_key).await?;
-    let entry = torn_keyring(&app)?;
-    entry.set_password(api_key).map_err(AppError::Keyring)?;
-    let store = app.store(STORE_NAME).map_err(AppError::Store)?;
+async fn connect_torn(app: AppHandle, api_key: String) -> Result<(), String> {
+    let client = TornClient::new(api_key.to_string());
+    let result = client.get_key_info().await.map_err(|e| e.to_string())?;
 
-    store.set("user_info", serde_json::to_value(&user).unwrap());
-    Ok(format!("User set: {}", user.id))
-}
+    if result.info.access.level < 3 {
+        Err("API access level not enough".to_string())
+    } else {
+        let user = result.info.user;
+        keyring::set_key(TORN_USER, &api_key).map_err(|e| e.to_string())?;
+        let store = app.store(STORE_NAME).map_err(|e| e.to_string())?;
 
-#[tauri::command]
-fn log_out(app: AppHandle) -> Result<String, String> {
-    let entry = torn_keyring(&app)?;
-    match entry.delete_credential() {
-        Ok(_) => Ok("The credential has been deleted".to_string()),
-        Err(keyring_core::error::Error::NoEntry) => {
-            Ok("No key found, already logged out".to_string())
-        }
-        Err(err) => Err(AppError::Keyring(err).to_string()),
+        store.set("user_info", serde_json::to_value(&user).unwrap());
+        let state = app.state::<Mutex<Option<TornClient>>>();
+        *state.lock().unwrap() = Some(TornClient::new(api_key));
+        Ok(())
     }
 }
 
 #[tauri::command]
-async fn authenticate_from_keyring(app: AppHandle) -> Result<String, String> {
-    let entry = torn_keyring(&app)?;
-    let api_key = entry.get_password().map_err(AppError::Keyring)?;
-    let user = validate_key(&app, &api_key).await?;
-    let store = app.store(STORE_NAME).map_err(AppError::Store)?;
+fn log_out() -> Result<(), String> {
+    keyring::delete_key(TORN_USER).map_err(|e| e.to_string())?;
+    Ok(())
+}
 
-    store.set("user_info", serde_json::to_value(&user).unwrap());
-    Ok("User validated and updated".to_string())
+#[tauri::command]
+async fn verify_session(app: AppHandle) -> Result<bool, String> {
+    let api_key = keyring::get_key(TORN_USER).map_err(|e| e.to_string())?;
+    match api_key {
+        Some(value) => {
+            let client = TornClient::new(value.to_string());
+            let result = client.get_key_info().await.map_err(|e| e.to_string())?;
+
+            if result.info.access.level < 3 {
+                Err("API access level not enough".to_string())
+            } else {
+                let user = result.info.user;
+                let store = app.store(STORE_NAME).map_err(|e| e.to_string())?;
+
+                store.set("user_info", serde_json::to_value(&user).unwrap());
+                let state = app.state::<Mutex<Option<TornClient>>>();
+                *state.lock().unwrap() = Some(TornClient::new(value));
+                let store = app.store(STORE_NAME).map_err(|e| e.to_string())?;
+
+                store.set("user_info", serde_json::to_value(&user).unwrap());
+                Ok(true)
+            }
+        }
+        None => Ok(false),
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -145,18 +91,31 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_store::Builder::new().build())
         .setup(|app| {
-            app.manage(reqwest::Client::new());
             keyring_core::set_default_store(windows_native_keyring_store::Store::new().unwrap());
-
             let store = app.store(STORE_NAME)?;
+
+            let initial_client = match get_key(TORN_USER) {
+                Ok(key) => match key {
+                    Some(key) => Some(TornClient::new(key)),
+                    None => None,
+                },
+                Err(_) => None,
+            };
+
+            app.manage(Mutex::new(initial_client));
+
+            let handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                poll_and_emit(handle).await;
+            });
 
             store.close_resource();
             Ok(())
         })
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
-            validate_and_save_key,
-            authenticate_from_keyring,
+            connect_torn,
+            verify_session,
             log_out
         ])
         .run(tauri::generate_context!())

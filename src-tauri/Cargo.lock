@@ -4190,7 +4190,9 @@ dependencies = [
  "bytes",
  "libc",
  "mio",
+ "parking_lot",
  "pin-project-lite",
+ "signal-hook-registry",
  "socket2",
  "tokio-macros",
  "windows-sys 0.61.2",
@@ -4363,6 +4365,7 @@ dependencies = [
  "tauri-plugin-opener",
  "tauri-plugin-store",
  "thiserror 2.0.18",
+ "tokio",
  "windows-native-keyring-store",
 ]
 

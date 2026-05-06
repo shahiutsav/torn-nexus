@@ -13,7 +13,7 @@
 <ModeWatcher />
 
 <div
-  class="titlebar border-accent bg-background fixed top-0 right-0 left-0 z-99 grid h-8.75 grid-cols-[auto_max-content] border-b select-none"
+  class="titlebar border-accent bg-sidebar fixed top-0 right-0 left-0 z-99 grid h-8.75 grid-cols-[auto_max-content] border-b select-none"
 >
   <p
     data-tauri-drag-region

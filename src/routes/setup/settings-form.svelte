@@ -1,5 +1,5 @@
 <script lang="ts" module>
-  import { string, z } from "zod";
+  import { z } from "zod";
 
   const formSchema = z.object({
     apiKey: z
@@ -32,13 +32,13 @@
       if (form.valid) {
         showLoad = true;
         try {
-          await invoke("validate_and_save_key", {
+          await invoke("connect_torn", {
             apiKey: form.data.apiKey,
           });
           await goto("/dashboard", { replaceState: true });
         } catch (e) {
           console.error(e);
-          setError(form, "apiKey", e as string);
+          setError(form, "apiKey", String(e));
         }
       }
     },
