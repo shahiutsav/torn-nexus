@@ -6,7 +6,10 @@ use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_store::StoreExt;
 use tokio::time::{sleep_until, Duration, Instant};
 
-use crate::{keyring::get_key, torn_api::TornClient};
+use crate::{
+    keyring::get_key,
+    torn_api::{TornClient, UserData},
+};
 
 mod keyring;
 mod torn_api;
@@ -38,7 +41,7 @@ async fn poll_and_emit(app: AppHandle) {
         match key {
             Some(key) => {
                 let client = TornClient::new(key);
-                match client.get_user_data().await {
+                match client.get_user_data(secs).await {
                     Ok(data) => app.emit("data-updated", data).unwrap(),
                     Err(_) => continue,
                 }
@@ -94,13 +97,33 @@ async fn verify_session(app: AppHandle) -> Result<bool, String> {
                 let store = app.store(STORE_NAME).map_err(|e| e.to_string())?;
 
                 store.set("user_info", serde_json::to_value(&user).unwrap());
-                let store = app.store(STORE_NAME).map_err(|e| e.to_string())?;
-
-                store.set("user_info", serde_json::to_value(&user).unwrap());
                 Ok(true)
             }
         }
         None => Ok(false),
+    }
+}
+
+#[tauri::command]
+async fn fetch_user_data(app: AppHandle) -> Result<UserData, String> {
+    let key = {
+        let state = app.state::<Mutex<Option<String>>>();
+        let guard = state.lock().unwrap();
+        guard.clone()
+    };
+
+    match key {
+        Some(key) => {
+            let client = TornClient::new(key);
+            let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+
+            let secs = now.as_secs();
+            Ok(client
+                .get_user_data(secs)
+                .await
+                .map_err(|e| e.to_string())?)
+        }
+        None => Err("No key found".to_string()),
     }
 }
 
@@ -131,7 +154,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             connect_torn,
             verify_session,
-            log_out
+            log_out,
+            fetch_user_data,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

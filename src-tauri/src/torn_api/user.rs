@@ -107,10 +107,13 @@ pub struct Life {
 }
 
 impl TornClient {
-    pub async fn get_user_data(&self) -> Result<UserData, TornError> {
+    pub async fn get_user_data(&self, current_timestamp: u64) -> Result<UserData, TornError> {
         let response = self
             .http_client
-            .get("https://api.torn.com/v2/user?selections=bars,cooldowns,profile")
+            .get(format!(
+                "https://api.torn.com/v2/user?selections=bars,cooldowns,profile&timestamp={}",
+                current_timestamp
+            ))
             .header(AUTHORIZATION, format!("ApiKey {}", self.api_key))
             .send()
             .await?

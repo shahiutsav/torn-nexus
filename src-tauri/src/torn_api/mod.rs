@@ -4,6 +4,8 @@ use thiserror::Error;
 mod key;
 mod user;
 
+pub use user::UserData;
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct APIError {
     pub error: Error,
