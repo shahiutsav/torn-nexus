@@ -14,8 +14,9 @@ mod torn_api;
 const STORE_NAME: &str = "store.json";
 const TORN_USER: &str = "torn_api_key";
 
+// TODO: look at how store can be managed neatly as well
+
 async fn poll_and_emit(app: AppHandle) {
-    let mut count = 0;
     loop {
         // Calculate ms until next 30s mark
         let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
@@ -28,8 +29,22 @@ async fn poll_and_emit(app: AppHandle) {
 
         sleep_until(target).await;
 
-        count += 1;
-        app.emit("data-updated", count).unwrap();
+        let key = {
+            let state = app.state::<Mutex<Option<String>>>();
+            let guard = state.lock().unwrap();
+            guard.clone()
+        };
+
+        match key {
+            Some(key) => {
+                let client = TornClient::new(key);
+                match client.get_user_data().await {
+                    Ok(data) => app.emit("data-updated", data).unwrap(),
+                    Err(_) => continue,
+                }
+            }
+            None => continue,
+        }
     }
 }
 
@@ -44,11 +59,13 @@ async fn connect_torn(app: AppHandle, api_key: String) -> Result<(), String> {
     } else {
         let user = result.info.user;
         keyring::set_key(TORN_USER, &api_key).map_err(|e| e.to_string())?;
+
+        let state = app.state::<Mutex<Option<String>>>();
+        *state.lock().unwrap() = Some(api_key);
         let store = app.store(STORE_NAME).map_err(|e| e.to_string())?;
 
         store.set("user_info", serde_json::to_value(&user).unwrap());
-        let state = app.state::<Mutex<Option<TornClient>>>();
-        *state.lock().unwrap() = Some(TornClient::new(api_key));
+
         Ok(())
     }
 }
@@ -61,7 +78,7 @@ fn log_out() -> Result<(), String> {
 
 #[tauri::command]
 async fn verify_session(app: AppHandle) -> Result<bool, String> {
-    let api_key = keyring::get_key(TORN_USER).map_err(|e| e.to_string())?;
+    let api_key = get_key(TORN_USER).map_err(|e| e.to_string())?;
     match api_key {
         Some(value) => {
             let client = TornClient::new(value.to_string());
@@ -71,11 +88,12 @@ async fn verify_session(app: AppHandle) -> Result<bool, String> {
                 Err("API access level not enough".to_string())
             } else {
                 let user = result.info.user;
+
+                let state = app.state::<Mutex<Option<String>>>();
+                *state.lock().unwrap() = Some(value);
                 let store = app.store(STORE_NAME).map_err(|e| e.to_string())?;
 
                 store.set("user_info", serde_json::to_value(&user).unwrap());
-                let state = app.state::<Mutex<Option<TornClient>>>();
-                *state.lock().unwrap() = Some(TornClient::new(value));
                 let store = app.store(STORE_NAME).map_err(|e| e.to_string())?;
 
                 store.set("user_info", serde_json::to_value(&user).unwrap());
@@ -92,17 +110,14 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::new().build())
         .setup(|app| {
             keyring_core::set_default_store(windows_native_keyring_store::Store::new().unwrap());
-            let store = app.store(STORE_NAME)?;
 
-            let initial_client = match get_key(TORN_USER) {
-                Ok(key) => match key {
-                    Some(key) => Some(TornClient::new(key)),
-                    None => None,
-                },
-                Err(_) => None,
+            let initial_key = match keyring::get_key(TORN_USER) {
+                Ok(Some(key)) => Some(key),
+                _ => None,
             };
+            app.manage(Mutex::new(initial_key));
 
-            app.manage(Mutex::new(initial_client));
+            let store = app.store(STORE_NAME)?;
 
             let handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {

@@ -26,6 +26,6 @@
 </script>
 
 <main>
-  <p>{data}</p>
+  <pre>{JSON.stringify(data, null, 2)}</pre>
   <Button onclick={handleLogOut}>Log Out</Button>
 </main>
