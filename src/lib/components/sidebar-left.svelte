@@ -15,7 +15,7 @@
   }: ComponentProps<typeof Sidebar.Root> = $props();
 
   const avatarUrl = $derived(
-    $userData.profile.image.replace(
+    $userData.data.profile.image.replace(
       "https://profileimages.torn.com/",
       "https://avatars.torn.com/48X48_",
     ),
@@ -33,13 +33,14 @@
   };
 
   const color = $derived(
-    statusColors[$userData.profile.status.state as keyof typeof statusColors] ??
-      "bg-gradient-to-r from-red-800/10 to-red-800/40",
+    statusColors[
+      $userData.data.profile.status.state as keyof typeof statusColors
+    ] ?? "bg-gradient-to-r from-red-800/10 to-red-800/40",
   );
 
   const activeStatusIcon = $derived(
     statusIcons[
-      $userData.profile.last_action.status as keyof typeof statusIcons
+      $userData.data.profile.last_action.status as keyof typeof statusIcons
     ],
   );
 </script>
@@ -58,8 +59,8 @@
       <Item.Media>
         <div class="relative">
           <Avatar.Root class="size-10">
-            <Avatar.Image src={avatarUrl} alt={$userData.profile.name} />
-            <Avatar.Fallback>{$userData.profile.name[0]}</Avatar.Fallback>
+            <Avatar.Image src={avatarUrl} alt={$userData.data.profile.name} />
+            <Avatar.Fallback>{$userData.data.profile.name[0]}</Avatar.Fallback>
           </Avatar.Root>
           <div class="bg-muted absolute right-0 bottom-0 size-4.5 rounded-full">
             <div
@@ -76,7 +77,7 @@
         </Item.Title>
         <Item.Description class="text-xs">
           <div class="flex items-center gap-1">
-            <span>{$userData.profile.status.state}</span>
+            <span>{$userData.data.profile.status.state}</span>
           </div>
         </Item.Description>
       </Item.Content>

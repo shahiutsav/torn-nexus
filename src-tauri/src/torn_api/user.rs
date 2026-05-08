@@ -10,6 +10,7 @@ pub struct UserData {
     pub bars: Bars,
     pub cooldowns: Cooldowns,
     pub profile: Profile,
+    pub timestamp: u32,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -111,7 +112,7 @@ impl TornClient {
         let response = self
             .http_client
             .get(format!(
-                "https://api.torn.com/v2/user?selections=bars,cooldowns,profile&timestamp={}",
+                "https://api.torn.com/v2/user?selections=bars,cooldowns,profile,timestamp&timestamp={}",
                 current_timestamp
             ))
             .header(AUTHORIZATION, format!("ApiKey {}", self.api_key))

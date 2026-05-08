@@ -1,3 +1,4 @@
+use serde::Serialize;
 use std::{
     sync::Mutex,
     time::{SystemTime, UNIX_EPOCH},
@@ -13,6 +14,12 @@ use crate::{
 
 mod keyring;
 mod torn_api;
+
+#[derive(Serialize, Clone)]
+struct DataUpdate {
+    data: UserData,
+    received_at: u64,
+}
 
 const STORE_NAME: &str = "store.json";
 const TORN_USER: &str = "torn_api_key";
@@ -42,7 +49,18 @@ async fn poll_and_emit(app: AppHandle) {
             Some(key) => {
                 let client = TornClient::new(key);
                 match client.get_user_data(secs).await {
-                    Ok(data) => app.emit("data-updated", data).unwrap(),
+                    Ok(data) => app
+                        .emit(
+                            "data-updated",
+                            DataUpdate {
+                                data,
+                                received_at: SystemTime::now()
+                                    .duration_since(UNIX_EPOCH)
+                                    .unwrap()
+                                    .as_secs(),
+                            },
+                        )
+                        .unwrap(),
                     Err(_) => continue,
                 }
             }
@@ -105,7 +123,7 @@ async fn verify_session(app: AppHandle) -> Result<bool, String> {
 }
 
 #[tauri::command]
-async fn fetch_user_data(app: AppHandle) -> Result<UserData, String> {
+async fn fetch_user_data(app: AppHandle) -> Result<DataUpdate, String> {
     let key = {
         let state = app.state::<Mutex<Option<String>>>();
         let guard = state.lock().unwrap();
@@ -118,10 +136,13 @@ async fn fetch_user_data(app: AppHandle) -> Result<UserData, String> {
             let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
 
             let secs = now.as_secs();
-            Ok(client
-                .get_user_data(secs)
-                .await
-                .map_err(|e| e.to_string())?)
+            Ok(DataUpdate {
+                data: client
+                    .get_user_data(secs)
+                    .await
+                    .map_err(|e| e.to_string())?,
+                received_at: secs,
+            })
         }
         None => Err("No key found".to_string()),
     }
