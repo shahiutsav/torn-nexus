@@ -1,8 +1,3 @@
-export interface DataUpdate {
-  data: UserData;
-  received_at: number;
-}
-
 export interface UserData {
   profile: Profile;
   bars: Bars;
