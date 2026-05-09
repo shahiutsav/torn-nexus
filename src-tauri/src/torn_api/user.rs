@@ -10,6 +10,7 @@ pub struct UserData {
     pub bars: Bars,
     pub cooldowns: Cooldowns,
     pub profile: Profile,
+    pub icons: Vec<Icon>,
     pub timestamp: u32,
 }
 
@@ -107,12 +108,20 @@ pub struct Life {
     pub maximum: u32,
 }
 
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct Icon {
+    id: u8,
+    title: String,
+    description: Value,
+    until: Value,
+}
+
 impl TornClient {
     pub async fn get_user_data(&self, current_timestamp: u64) -> Result<UserData, TornError> {
         let response = self
             .http_client
             .get(format!(
-                "https://api.torn.com/v2/user?selections=bars,cooldowns,profile,timestamp&timestamp={}",
+                "https://api.torn.com/v2/user?selections=bars,cooldowns,profile,icons,timestamp&timestamp={}",
                 current_timestamp
             ))
             .header(AUTHORIZATION, format!("ApiKey {}", self.api_key))

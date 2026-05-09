@@ -1,8 +1,8 @@
 <script lang="ts">
   import { Progress } from "$lib/components/ui/progress/index.js";
-  import { formatCountdown, startCountdown } from "@/utils";
+  import { cn, formatCountdownMMSS, startCountdown } from "@/utils";
   import { userData } from "@/stores/user";
-  import type { BarConfig } from "@/types/bar-config";
+  import type { BarConfig } from "@/types/sidebar-right-config";
 
   let energyTick = $state($userData.bars.energy.tick_time);
   let nerveTick = $state($userData.bars.nerve.tick_time);
@@ -85,22 +85,24 @@
     if (bar.current === bar.maximum) return { text: "FULL" };
     if (bar.current > bar.maximum) {
       return bar.overflowable
-        ? { text: formatCountdown(bar.tick), class: "text-red-400" }
+        ? { text: formatCountdownMMSS(bar.tick), class: "text-red-400" }
         : { text: "OVER" };
     }
-    return { text: formatCountdown(bar.tick) };
+    return { text: formatCountdownMMSS(bar.tick) };
   }
 </script>
 
 {#each bars as bar}
   {@const display = getBarDisplay(bar)}
-  <div>
+  <div class="text-sm">
     <div>
-      <p class="float-left font-bold">{bar.label}</p>
-      <p class="float-left">: {bar.current}/{bar.maximum}</p>
+      <p class="float-left w-13 font-bold">{bar.label}</p>
+      <p class="float-left font-mono">: {bar.current}/{bar.maximum}</p>
       <p
-        class="text-muted-foreground float-right font-mono {display.class ??
-          ''}"
+        class={cn(
+          "text-muted-foreground float-right font-mono",
+          display.class ?? "",
+        )}
       >
         {display.text}
       </p>

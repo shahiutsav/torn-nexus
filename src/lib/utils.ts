@@ -32,11 +32,18 @@ export function formatDuration(seconds: number): string {
   return parts.slice(0, 2).join(" ") || "0s";
 }
 
-export function formatCountdown(seconds: number): string {
+export function formatCountdownMMSS(seconds: number): string {
   if (seconds <= 0) return "00:00";
   const minutes = Math.floor(seconds / 60);
   const secs = seconds % 60;
   return `${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+}
+
+export function formatCountdownHHMMSS(seconds: number): string {
+  const hours = Math.floor(seconds / (60 * 60));
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 }
 
 export function startCountdown(

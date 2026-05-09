@@ -2,6 +2,7 @@ export interface UserData {
   profile: Profile;
   bars: Bars;
   cooldowns: Cooldowns;
+  icons: Icon[];
   timestamp: number;
 }
 
@@ -39,10 +40,10 @@ export interface Property {
 
 export interface Status {
   description: string;
-  details: any;
+  details: string | null;
   state: string;
   color: string;
-  until: any;
+  until: number | null;
 }
 
 export interface Spouse {
@@ -95,4 +96,11 @@ export interface Cooldowns {
   drug: number;
   medical: number;
   booster: number;
+}
+
+export interface Icon {
+  id: number;
+  title: string;
+  description: string | null;
+  until: number | null;
 }
