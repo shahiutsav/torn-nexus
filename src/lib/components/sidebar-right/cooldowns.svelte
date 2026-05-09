@@ -4,64 +4,39 @@
   import * as Sidebar from "$lib/components/ui/sidebar/index.js";
   import ChevronRightIcon from "@lucide/svelte/icons/chevron-right";
   import { formatCountdownHHMMSS, startCountdown } from "@/utils";
-  import type { CooldownConfig } from "@/types/sidebar-right-config";
+
   import * as Item from "../ui/item/index";
+  import {
+    COOLDOWN_CONFIG,
+    type CooldownKey,
+  } from "@/types/sidebar-right-config";
 
-  // TODO: Derived in multiple places, make it so that there's only one source of truth
-  const drugIcon = $derived(
-    $userData.icons.find((icon) => icon.title.includes("Drug Cooldown")),
-  );
-  const medicalIcon = $derived(
-    $userData.icons.find((icon) => icon.title.includes("Medical Cooldown")),
-  );
-  const boosterIcon = $derived(
-    $userData.icons.find((icon) => icon.title.includes("Booster Cooldown")),
-  );
-
-  let drugCooldown = $state($userData.cooldowns.drug);
-  let medicalCooldown = $state($userData.cooldowns.medical);
-  let boosterCooldown = $state($userData.cooldowns.booster);
+  let countdowns = $state<Record<CooldownKey, number>>({
+    drug: $userData.cooldowns.drug,
+    medical: $userData.cooldowns.medical,
+    booster: $userData.cooldowns.booster,
+  });
 
   $effect(() => {
     const offset = Math.floor(Date.now() / 1000) - $userData.timestamp;
-    const cleanups = [
+    const cleanups = COOLDOWN_CONFIG.map(({ key }) =>
       startCountdown(
-        $userData.cooldowns.drug - offset,
-        (r) => (drugCooldown = r),
+        $userData.cooldowns[key] - offset,
+        (r) => (countdowns[key] = r),
       ),
-      startCountdown(
-        $userData.cooldowns.medical - offset,
-        (r) => (medicalCooldown = r),
-      ),
-      startCountdown(
-        $userData.cooldowns.booster - offset,
-        (r) => (boosterCooldown = r),
-      ),
-    ];
-
-    return () => cleanups.forEach((cleanup) => cleanup());
+    );
+    return () => cleanups.forEach((c) => c());
   });
 
-  const cooldowns: CooldownConfig[] = $derived([
-    {
-      icon: drugIcon,
-      countdown: drugCooldown,
-      noIconSrc: "/icons/cooldowns/no_drug_cd.svg",
-      label: "Drug",
-    },
-    {
-      icon: medicalIcon,
-      countdown: medicalCooldown,
-      noIconSrc: "/icons/cooldowns/no_med_cd.svg",
-      label: "Medical",
-    },
-    {
-      icon: boosterIcon,
-      countdown: boosterCooldown,
-      noIconSrc: "/icons/cooldowns/no_booster_cd.svg",
-      label: "Booster",
-    },
-  ]);
+  const cooldowns = $derived(
+    COOLDOWN_CONFIG.map((config) => ({
+      ...config,
+      icon: $userData.icons.find((icon) =>
+        icon.title.includes(`${config.label} Cooldown`),
+      ),
+      countdown: countdowns[config.key],
+    })),
+  );
 </script>
 
 <Collapsible.Root open={true} class="group/collapsible">
@@ -78,7 +53,7 @@
     {/snippet}
   </Sidebar.GroupLabel>
   <Collapsible.Content>
-    <Sidebar.GroupContent class="p-2">
+    <Sidebar.GroupContent class="py-1">
       <Sidebar.Menu>
         {#each cooldowns as cooldown}
           <Sidebar.MenuItem>
