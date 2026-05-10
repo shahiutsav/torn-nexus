@@ -1,6 +1,6 @@
 <script lang="ts">
-  import * as Sidebar from "$lib/components/ui/sidebar/index.js";
-  import SidebarLeft from "@/components/sidebar-left.svelte";
+  import * as Sidebar from "@/components/ui/sidebar/index.js";
+  import SidebarLeft from "@/components/sidebar-left/sidebar-left.svelte";
   import SidebarRight from "@/components/sidebar-right/sidebar-right.svelte";
   import { userData } from "@/stores/user";
   import LoaderCircle from "@lucide/svelte/icons/loader-circle";

@@ -24,6 +24,8 @@
   <TooltipPrimitive.Content
     bind:ref
     data-slot="tooltip-content"
+    avoidCollisions
+    collisionPadding={8}
     {sideOffset}
     {side}
     class={cn(
