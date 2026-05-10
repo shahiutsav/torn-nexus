@@ -11,6 +11,7 @@ pub struct UserData {
     pub cooldowns: Cooldowns,
     pub profile: Profile,
     pub icons: Vec<Icon>,
+    pub battlestats: Battlestats,
     pub timestamp: u32,
 }
 
@@ -116,12 +117,36 @@ pub struct Icon {
     until: Value,
 }
 
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct Battlestats {
+    strength: Battlestat,
+    speed: Battlestat,
+    defense: Battlestat,
+    dexterity: Battlestat,
+    total: u64,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct Battlestat {
+    value: u64,
+    modifier: i16,
+    modifiers: Vec<Modifier>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct Modifier {
+    effect: String,
+    value: i16,
+    #[serde(rename = "type")]
+    modifier_type: String,
+}
+
 impl TornClient {
     pub async fn get_user_data(&self, current_timestamp: u64) -> Result<UserData, TornError> {
         let response = self
             .http_client
             .get(format!(
-                "https://api.torn.com/v2/user?selections=bars,cooldowns,profile,icons,timestamp&timestamp={}",
+                "https://api.torn.com/v2/user?selections=bars,cooldowns,profile,icons,battlestats,timestamp&timestamp={}&comment=torn-nexus",
                 current_timestamp
             ))
             .header(AUTHORIZATION, format!("ApiKey {}", self.api_key))

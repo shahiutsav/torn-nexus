@@ -160,7 +160,7 @@
   <Tooltip.Root>
     <Tooltip.Trigger>
       {#snippet child({ props })}
-        <div class="text-sm last:min-h-9" {...props}>
+        <div class="text-xs last:min-h-9" {...props}>
           <div>
             <p class="float-left w-13 font-bold">{bar.label}</p>
             <p class="float-left font-mono">: {bar.current}/{bar.maximum}</p>

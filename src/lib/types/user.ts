@@ -3,6 +3,7 @@ export interface UserData {
   bars: Bars;
   cooldowns: Cooldowns;
   icons: Icon[];
+  battlestats: Battlestats;
   timestamp: number;
 }
 
@@ -103,4 +104,24 @@ export interface Icon {
   title: string;
   description: string | null;
   until: number | null;
+}
+
+export interface Battlestats {
+  strength: Battlestat;
+  speed: Battlestat;
+  defense: Battlestat;
+  dexterity: Battlestat;
+  total: number;
+}
+
+export interface Battlestat {
+  value: number;
+  modifier: number;
+  modifiers: Modifier[];
+}
+
+export interface Modifier {
+  effect: string;
+  value: number;
+  type: string;
 }
