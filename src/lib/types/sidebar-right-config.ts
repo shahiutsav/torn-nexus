@@ -1,12 +1,3 @@
-export type BarConfig = {
-  label: string;
-  current: number;
-  maximum: number;
-  tick: number;
-  barClass: string;
-  overflowable?: boolean;
-};
-
 export const COOLDOWN_CONFIG = [
   {
     key: "drug",

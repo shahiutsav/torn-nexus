@@ -7,6 +7,7 @@
   import "./layout.css";
   import { ModeWatcher } from "mode-watcher";
   import { Button } from "@/components/ui/button/index.js";
+  import * as Tooltip from "@/components/ui/tooltip/index.js";
   const { children } = $props();
 </script>
 
@@ -83,5 +84,7 @@
 </div>
 
 <div class="relative top-8.75 h-[calc(100svh-35px)]">
-  {@render children()}
+  <Tooltip.Provider delayDuration={0}>
+    {@render children()}
+  </Tooltip.Provider>
 </div>
