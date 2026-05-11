@@ -13,6 +13,14 @@
   import Job from "./job.svelte";
   import Skills from "./skills.svelte";
 
+  const defaultOpen: Record<string, boolean> = {
+    cooldowns: true,
+    miscellaneous: false,
+    battlestats: false,
+    job: false,
+    skills: false,
+  };
+
   const componentMap = {
     cooldowns: Cooldowns,
     miscellaneous: Miscellaneous,
@@ -26,7 +34,10 @@
   ).map((key) => {
     return {
       label: key.charAt(0).toUpperCase() + key.slice(1),
-      collapsibleState: usePersistedOpen("sidebar:right:" + key + ":open"),
+      collapsibleState: usePersistedOpen(
+        "sidebar:right:" + key + ":open",
+        defaultOpen[key],
+      ),
       component: componentMap[key],
     };
   });
