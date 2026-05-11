@@ -3,16 +3,19 @@ export const COOLDOWN_CONFIG = [
     key: "drug",
     label: "Drug",
     noIconSrc: "/icons/cooldowns/no_drug_cd.svg",
+    showDescription: true,
   },
   {
     key: "medical",
     label: "Medical",
     noIconSrc: "/icons/cooldowns/no_med_cd.svg",
+    showDescription: false,
   },
   {
     key: "booster",
     label: "Booster",
     noIconSrc: "/icons/cooldowns/no_booster_cd.svg",
+    showDescription: false,
   },
 ] as const;
 
