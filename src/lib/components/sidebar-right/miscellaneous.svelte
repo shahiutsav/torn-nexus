@@ -12,6 +12,11 @@
     MISC_ICON_TITLES,
     type MiscIconTitle,
   } from "@/types/sidebar-right-config";
+  import { usePersistedOpen } from "@/hooks/use-persisted-open.svelte";
+
+  const miscellaneousCollapsible = usePersistedOpen(
+    "sidebar:miscellaneous:open",
+  );
 
   const miscellaneous = $derived(
     MISC_ICON_TITLES.map((title) =>
@@ -39,7 +44,11 @@
     "";
 </script>
 
-<Collapsible.Root open={true} class="group/collapsible">
+<Collapsible.Root
+  open={miscellaneousCollapsible.isOpen}
+  onOpenChange={miscellaneousCollapsible.toggle}
+  class="group/collapsible"
+>
   <Sidebar.GroupLabel
     class="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground w-full text-sm"
   >

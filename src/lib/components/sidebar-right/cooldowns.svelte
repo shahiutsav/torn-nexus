@@ -13,6 +13,9 @@
     COOLDOWN_CONFIG,
     type CooldownKey,
   } from "@/types/sidebar-right-config";
+  import { usePersistedOpen } from "@/hooks/use-persisted-open.svelte";
+
+  const cooldownCollapsible = usePersistedOpen("sidebar:cooldowns:open");
 
   let countdowns = $state<Record<CooldownKey, number>>({
     drug: $userData.cooldowns.drug,
@@ -42,7 +45,11 @@
   );
 </script>
 
-<Collapsible.Root open={true} class="group/collapsible">
+<Collapsible.Root
+  open={cooldownCollapsible.isOpen}
+  onOpenChange={cooldownCollapsible.toggle}
+  class="group/collapsible"
+>
   <Sidebar.GroupLabel
     class="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground w-full text-sm"
   >
