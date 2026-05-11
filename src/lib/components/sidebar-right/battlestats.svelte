@@ -101,10 +101,9 @@
                   </Table.Row>
                 {/snippet}
               </Tooltip.Trigger>
-              <Tooltip.Content side="left" class="grid grid-cols-2 gap-0">
+              <Tooltip.Content side="left" class="grid grid-cols-1 gap-0">
                 {#each stat.modifiers as modifier}
-                  <p class="font-bold">{modifier.type}</p>
-                  <p class="text-end">{modifier.value}%</p>
+                  <p>{modifier.effect}</p>
                 {/each}
               </Tooltip.Content>
             </Tooltip.Root>
