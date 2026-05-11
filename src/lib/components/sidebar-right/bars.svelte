@@ -8,8 +8,10 @@
     startCountdown,
   } from "@/utils";
   import { userData } from "@/stores/user";
+  import { BAR_CONFIG } from "@/constants/sidebar-right-constants";
 
   type RegularBar = {
+    key: string;
     label: string;
     current: number;
     maximum: number;
@@ -33,11 +35,12 @@
 
   type Bar = RegularBar | ChainBar;
 
-  let ticks = $state({
-    energy: $userData.bars.energy.tick_time,
-    nerve: $userData.bars.nerve.tick_time,
-    life: $userData.bars.life.tick_time,
-    happy: $userData.bars.happy.tick_time,
+  type TickKey = (typeof BAR_CONFIG)[number]["key"] | "chain";
+
+  let ticks = $state<Record<TickKey, number>>({
+    ...(Object.fromEntries(
+      BAR_CONFIG.map(({ key }) => [key, $userData.bars[key].tick_time]),
+    ) as Record<TickKey, number>),
     chain: $userData.bars.chain.timeout,
   });
 
@@ -46,97 +49,44 @@
     const offset = Math.floor(Date.now() / 1000) - data.timestamp;
 
     const cleanups = [
-      startCountdown(
-        data.bars.energy.tick_time - offset,
-        (r) => (ticks.energy = r),
-        data.bars.energy.interval,
+      ...BAR_CONFIG.map(({ key }) =>
+        startCountdown(
+          data.bars[key].tick_time - offset,
+          (r) => (ticks[key] = r),
+          data.bars[key].interval,
+        ),
       ),
-      startCountdown(
-        data.bars.nerve.tick_time - offset,
-        (r) => (ticks.nerve = r),
-        data.bars.nerve.interval,
-      ),
-      startCountdown(
-        data.bars.life.tick_time - offset,
-        (r) => (ticks.life = r),
-        data.bars.life.interval,
-      ),
-      startCountdown(
-        data.bars.happy.tick_time - offset,
-        (r) => (ticks.happy = r),
-        data.bars.happy.interval,
-      ),
-      // Chain uses a timeout countdown, not a regen interval.
       startCountdown(
         data.bars.chain.timeout - offset,
         (r) => (ticks.chain = r),
       ),
     ];
 
-    return () => cleanups.forEach((cleanup) => cleanup());
+    return () => cleanups.forEach((c) => c());
   });
 
   const bars: Bar[] = $derived([
-    {
-      label: "Energy",
-      current: $userData.bars.energy.current,
-      maximum: $userData.bars.energy.maximum,
-      increment: $userData.bars.energy.increment,
-      interval: $userData.bars.energy.interval,
-      full_time:
-        $userData.bars.energy.full_time -
-        (Math.floor(Date.now() / 1000) - $userData.timestamp),
-      tick: ticks.energy,
-      barClass: "bg-linear-to-b from-[#6cad2b] to-[#4d7c1e]",
-      isChain: false,
-    },
-    {
-      label: "Nerve",
-      current: $userData.bars.nerve.current,
-      maximum: $userData.bars.nerve.maximum,
-      increment: $userData.bars.nerve.increment,
-      interval: $userData.bars.nerve.interval,
-      full_time:
-        $userData.bars.nerve.full_time -
-        (Math.floor(Date.now() / 1000) - $userData.timestamp),
-      tick: ticks.nerve,
-      barClass: "bg-linear-to-b from-[#cc7032] to-[#b3382c]",
-      isChain: false,
-    },
-    {
-      label: "Happy",
-      current: $userData.bars.happy.current,
-      maximum: $userData.bars.happy.maximum,
-      increment: $userData.bars.happy.increment,
-      interval: $userData.bars.happy.interval,
-      full_time:
-        $userData.bars.happy.full_time -
-        (Math.floor(Date.now() / 1000) - $userData.timestamp),
-      tick: ticks.happy,
-      barClass: "bg-linear-to-b from-[#cccc32] to-[#b3992c]",
-      overflowable: true,
-      isChain: false,
-    },
-    {
-      label: "Life",
-      current: $userData.bars.life.current,
-      maximum: $userData.bars.life.maximum,
-      increment: $userData.bars.life.increment,
-      interval: $userData.bars.life.interval,
-      full_time:
-        $userData.bars.life.full_time -
-        (Math.floor(Date.now() / 1000) - $userData.timestamp),
-      tick: ticks.life,
-      barClass: "bg-linear-to-b from-[#708bdb] to-[#3f43cf]",
-      isChain: false,
-    },
+    ...BAR_CONFIG.map((config) => {
+      const bar = $userData.bars[config.key];
+      return {
+        ...config,
+        current: bar.current,
+        maximum: bar.maximum,
+        increment: bar.increment,
+        interval: bar.interval,
+        full_time:
+          bar.full_time - (Math.floor(Date.now() / 1000) - $userData.timestamp),
+        tick: ticks[config.key],
+        isChain: false as const,
+      };
+    }),
     {
       label: "Chain",
       current: $userData.bars.chain.current,
       maximum: $userData.bars.chain.max,
       tick: ticks.chain,
       barClass: "bg-linear-to-b from-[#878787] to-[#6b6b6b]",
-      isChain: true,
+      isChain: true as const,
     },
   ]);
 
@@ -197,7 +147,7 @@
               bar.tick,
             )} to start a chain
           </p>
-        {:else if bar.current > 10}
+        {:else if bar.current >= 10}
           <p>TBD</p>
         {:else}
           <p class="font-bold">Chain inactive</p>
@@ -211,9 +161,8 @@
           <p>You have full <span class="lowercase">{bar.label}</span></p>
         {:else if bar.current > bar.maximum}
           <p>
-            {bar.label === "Happy"
-              ? "You have over full happiness"
-              : `You have over full ${bar.label.toLowerCase()}`}
+            You have over full
+            {bar.overflowable ? "happiness" : bar.key}
           </p>
         {:else}
           <p>

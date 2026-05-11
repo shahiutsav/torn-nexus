@@ -1,10 +1,10 @@
 <script lang="ts">
   import * as Tooltip from "@/components/ui/tooltip/index.js";
-  import { userData } from "@/stores/user";
   import {
     COOLDOWN_CONFIG,
     MISC_ICON_TITLES,
-  } from "@/types/sidebar-right-config";
+  } from "@/constants/sidebar-right-constants";
+  import { userData } from "@/stores/user";
   import { spriteStyle } from "@/utils";
 
   const EXCLUDED_TITLES = [

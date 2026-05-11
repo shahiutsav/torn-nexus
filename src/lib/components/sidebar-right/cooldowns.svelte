@@ -6,10 +6,8 @@
   import { userData } from "@/stores/user";
   import { formatCountdownHHMMSS, spriteStyle, startCountdown } from "@/utils";
 
-  import {
-    COOLDOWN_CONFIG,
-    type CooldownKey,
-  } from "@/types/sidebar-right-config";
+  import { type CooldownKey } from "@/types/sidebar-right-config";
+  import { COOLDOWN_CONFIG } from "@/constants/sidebar-right-constants";
 
   let countdowns = $state<Record<CooldownKey, number>>({
     drug: $userData.cooldowns.drug,

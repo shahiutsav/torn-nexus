@@ -5,11 +5,9 @@
 
   import { userData } from "@/stores/user";
   import type { Icon } from "@/types/user";
-  import {
-    MISC_ICON_TITLES,
-    type MiscIconTitle,
-  } from "@/types/sidebar-right-config";
+  import { type MiscIconTitle } from "@/types/sidebar-right-config";
   import { spriteStyle } from "@/utils";
+  import { MISC_ICON_TITLES } from "@/constants/sidebar-right-constants";
 
   const miscellaneous = $derived(
     MISC_ICON_TITLES.map((title) =>
