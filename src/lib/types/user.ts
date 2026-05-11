@@ -6,6 +6,7 @@ export interface UserData {
   battlestats: Battlestats;
   workstats: WorkStats;
   jobpoints: JobPoints;
+  skills: Skill[];
   timestamp: number;
 }
 
@@ -157,4 +158,10 @@ export interface CompanyPoints {
 export interface JobPointsCompany {
   id: number;
   name: String;
+}
+
+export interface Skill {
+  slug: String;
+  name: String;
+  level: number;
 }

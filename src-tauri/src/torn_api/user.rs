@@ -14,6 +14,7 @@ pub struct UserData {
     pub battlestats: Battlestats,
     pub workstats: WorkStats,
     pub jobpoints: JobPoints,
+    pub skills: Vec<Skill>,
     pub timestamp: u32,
 }
 
@@ -179,12 +180,19 @@ pub struct JobPointsCompany {
     name: String,
 }
 
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct Skill {
+    slug: String,
+    name: String,
+    level: f32,
+}
+
 impl TornClient {
     pub async fn get_user_data(&self, current_timestamp: u64) -> Result<UserData, TornError> {
         let response = self
             .http_client
             .get(format!(
-                "https://api.torn.com/v2/user?selections=bars,cooldowns,profile,icons,battlestats,workstats,jobpoints,timestamp&timestamp={}&comment=torn-nexus",
+                "https://api.torn.com/v2/user?selections=bars,cooldowns,profile,icons,battlestats,workstats,jobpoints,skills,timestamp&timestamp={}&comment=torn-nexus",
                 current_timestamp
             ))
             .header(AUTHORIZATION, format!("ApiKey {}", self.api_key))

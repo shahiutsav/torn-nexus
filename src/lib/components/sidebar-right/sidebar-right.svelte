@@ -11,16 +11,18 @@
 
   import ChevronRightIcon from "@lucide/svelte/icons/chevron-right";
   import Job from "./job.svelte";
+  import Skills from "./skills.svelte";
 
   const componentMap = {
     cooldowns: Cooldowns,
     miscellaneous: Miscellaneous,
     battlestats: Battlestats,
     job: Job,
+    skills: Skills,
   } as const;
 
   const sections = (
-    ["cooldowns", "miscellaneous", "battlestats", "job"] as const
+    ["cooldowns", "miscellaneous", "battlestats", "job", "skills"] as const
   ).map((key) => {
     return {
       label: key.charAt(0).toUpperCase() + key.slice(1),
