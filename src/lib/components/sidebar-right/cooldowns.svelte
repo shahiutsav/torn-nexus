@@ -4,7 +4,7 @@
   import * as Tooltip from "@/components/ui/tooltip/index.js";
 
   import { userData } from "@/stores/user";
-  import { formatCountdownHHMMSS, startCountdown } from "@/utils";
+  import { formatCountdownHHMMSS, spriteStyle, startCountdown } from "@/utils";
 
   import {
     COOLDOWN_CONFIG,
@@ -16,10 +16,6 @@
     medical: $userData.cooldowns.medical,
     booster: $userData.cooldowns.booster,
   });
-
-  function spriteStyle(id: number): string {
-    return `width:16px;height:16px;background-image:url('https://www.torn.com/images/v2/svg_icons/sprites/user_status_icons_sprite.svg?v=1761056520');background-position:-${(id - 1) * 18}px;background-repeat:none;`;
-  }
 
   $effect(() => {
     const offset = Math.floor(Date.now() / 1000) - $userData.timestamp;

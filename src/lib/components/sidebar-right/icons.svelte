@@ -5,6 +5,7 @@
     COOLDOWN_CONFIG,
     MISC_ICON_TITLES,
   } from "@/types/sidebar-right-config";
+  import { spriteStyle } from "@/utils";
 
   const EXCLUDED_TITLES = [
     ...COOLDOWN_CONFIG.map((c) => `${c.label} Cooldown`),
@@ -24,12 +25,8 @@
       <Tooltip.Trigger>
         {#snippet child({ props })}
           <li
-            class="m-0 mr-2.5 inline-block h-4 w-4"
-            style="
-              background-image: url('https://www.torn.com/images/v2/svg_icons/sprites/user_status_icons_sprite.svg?v=1761056520');
-              background-position: -{(icon.id - 1) * 18}px;
-              background-repeat:none;
-            "
+            class="m-0 mr-2.5 inline-block"
+            style={spriteStyle(icon.id)}
             {...props}
           ></li>
         {/snippet}

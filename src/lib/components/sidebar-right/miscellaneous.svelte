@@ -9,6 +9,7 @@
     MISC_ICON_TITLES,
     type MiscIconTitle,
   } from "@/types/sidebar-right-config";
+  import { spriteStyle } from "@/utils";
 
   const miscellaneous = $derived(
     MISC_ICON_TITLES.map((title) =>
@@ -49,15 +50,7 @@
             <Sidebar.MenuItem {...props}>
               <Item.Root variant="muted" class="gap-2 p-2.5">
                 <Item.Media variant="icon">
-                  <div
-                    style="
-                      width: 16px;
-                      height: 16px;
-                      background-image: url('https://www.torn.com/images/v2/svg_icons/sprites/user_status_icons_sprite.svg?v=1761056520');
-                      background-position: -{(misc.id - 1) * 18}px;
-                      background-repeat:none;
-                    "
-                  ></div>
+                  <div style={spriteStyle(misc.id)}></div>
                 </Item.Media>
                 <Item.Content>
                   <Item.Title>

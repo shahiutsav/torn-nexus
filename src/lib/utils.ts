@@ -69,3 +69,12 @@ export function startCountdown(
 
   return () => clearTimeout(timerId);
 }
+
+export function spriteStyle(id: number): string {
+  return `
+    width:16px;
+    height:16px;
+    background-image:url('https://www.torn.com/images/v2/svg_icons/sprites/user_status_icons_sprite.svg?v=1761056520');
+    background-position:-${(id - 1) * 18}px;
+    background-repeat:none;`;
+}
