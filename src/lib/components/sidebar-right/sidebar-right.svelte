@@ -10,22 +10,24 @@
   import Miscellaneous from "./miscellaneous.svelte";
 
   import ChevronRightIcon from "@lucide/svelte/icons/chevron-right";
+  import Job from "./job.svelte";
 
   const componentMap = {
     cooldowns: Cooldowns,
     miscellaneous: Miscellaneous,
     battlestats: Battlestats,
+    job: Job,
   } as const;
 
-  const sections = (["cooldowns", "miscellaneous", "battlestats"] as const).map(
-    (key) => {
-      return {
-        label: key.charAt(0).toUpperCase() + key.slice(1),
-        collapsibleState: usePersistedOpen("sidebar:right:" + key + ":open"),
-        component: componentMap[key],
-      };
-    },
-  );
+  const sections = (
+    ["cooldowns", "miscellaneous", "battlestats", "job"] as const
+  ).map((key) => {
+    return {
+      label: key.charAt(0).toUpperCase() + key.slice(1),
+      collapsibleState: usePersistedOpen("sidebar:right:" + key + ":open"),
+      component: componentMap[key],
+    };
+  });
 </script>
 
 <Sidebar.Root
@@ -40,7 +42,7 @@
     <Bars />
   </Sidebar.Header>
   <Sidebar.Separator class="mx-0" />
-  <Sidebar.Content>
+  <Sidebar.Content class="pb-2">
     {#each sections as section}
       <Sidebar.Group class="not-first:py-0 first:pb-0">
         <Collapsible.Root

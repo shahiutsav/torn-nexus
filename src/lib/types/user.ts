@@ -4,6 +4,8 @@ export interface UserData {
   cooldowns: Cooldowns;
   icons: Icon[];
   battlestats: Battlestats;
+  workstats: WorkStats;
+  jobpoints: JobPoints;
   timestamp: number;
 }
 
@@ -124,4 +126,35 @@ export interface Modifier {
   effect: string;
   value: number;
   type: string;
+}
+
+export interface WorkStats {
+  endurance: number;
+  intelligence: number;
+  manual_labor: number;
+  total: number;
+}
+
+export interface JobPoints {
+  jobs: Jobs;
+  companies: CompanyPoints[];
+}
+
+export interface Jobs {
+  army: number;
+  casino: number;
+  education: number;
+  grocer: number;
+  law: number;
+  medical: number;
+}
+
+export interface CompanyPoints {
+  company: JobPointsCompany;
+  points: number;
+}
+
+export interface JobPointsCompany {
+  id: number;
+  name: String;
 }
