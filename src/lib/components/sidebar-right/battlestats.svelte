@@ -48,8 +48,8 @@
 <Sidebar.Menu>
   <Sidebar.MenuItem>
     <Card.Root class="py-0">
-      <Table.Root>
-        <Table.Body class="text-xs">
+      <Table.Root class="text-xs">
+        <Table.Body>
           {#each battlestats as stat}
             <Table.Row>
               <Table.Cell class="max-w-19.5 font-medium">
@@ -61,7 +61,7 @@
             </Table.Row>
           {/each}
         </Table.Body>
-        <Table.Footer class="text-xs">
+        <Table.Footer>
           <Table.Row>
             <Table.Cell>Total</Table.Cell>
             <Table.Cell class="text-end">
@@ -73,12 +73,18 @@
     </Card.Root>
   </Sidebar.MenuItem>
 </Sidebar.Menu>
-<Sidebar.Menu>
+<Sidebar.Menu class="mt-2">
   <Sidebar.MenuItem>
-    <p class="pt-3 pb-2 pl-2">Effective Battle Stats</p>
     <Card.Root class="py-0">
-      <Table.Root>
-        <Table.Body class="text-xs">
+      <Table.Root class="text-xs">
+        <Table.Header>
+          <Table.Row>
+            <Table.Head colspan={3} class="text-center">
+              Effective Battle Stats
+            </Table.Head>
+          </Table.Row>
+        </Table.Header>
+        <Table.Body>
           {#each battlestats as stat}
             <Tooltip.Root>
               <Tooltip.Trigger>
