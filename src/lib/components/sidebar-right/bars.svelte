@@ -112,8 +112,8 @@
       {#snippet child({ props })}
         <div class="text-xs last:min-h-9" {...props}>
           <div>
-            <p class="float-left w-13 font-bold">{bar.label}</p>
-            <p class="float-left font-mono">: {bar.current}/{bar.maximum}</p>
+            <p class="float-left w-11 font-bold">{bar.label}</p>
+            <p class="float-left">: {bar.current}/{bar.maximum}</p>
             <p
               class={cn(
                 "text-muted-foreground float-right font-mono",
@@ -125,7 +125,7 @@
           </div>
           <Progress
             value={Math.min((bar.current / bar.maximum) * 100, 100)}
-            class="mt-0.5 h-2"
+            class="mt-4.75 h-2"
             barClass={bar.barClass}
           />
         </div>
